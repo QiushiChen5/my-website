@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horizontal Scroll, Single Zoom, and Controlled Scroll</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .scroll-container {
+    width: 100vw;
+    height: 100vh;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    border: 1px solid #ccc;
+    position: relative;
+    scroll-behavior: smooth;
+  }
+
+  .scroll-container img {
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.5s ease-in-out;
+    will-change: transform;
+  }
+
+  .zoomed {
+    transform: scale(5); /* 放大 5 倍 */
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-container" id="scrollContainer">
+  <!-- 使用懒加载，添加 loading="lazy" 属性 -->
+  <img id="longImage" src="Whole section.png" alt="长图片" loading="lazy">
+</div>
+
+<script>
+  const img = document.getElementById('longImage');
+  const scrollContainer = document.getElementById('scrollContainer');
+  let zoomLevel = 0; // 0 表示未放大，1 表示放大 5 倍
+  let autoScrollInterval;
+  let scrollingRight = true; // 标识滚动方向
+
+  // 自动滚动函数
+  function startAutoScroll() {
+    stopAutoScroll(); // 确保没有其他滚动在运行
+    autoScrollInterval = setInterval(() => {
+      if (scrollingRight) {
+        scrollContainer.scrollBy({ left: 1, behavior: 'smooth' });
+        if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth) {
+          scrollingRight = false; // 到达最右侧，反向
+        }
+      } else {
+        scrollContainer.scrollBy({ left: -1, behavior: 'smooth' });
+        if (scrollContainer.scrollLeft <= 0) {
+          scrollingRight = true; // 到达最左侧，反向
+        }
+      }
+    }, 20); // 控制滚动速度
+  }
+
+  // 停止自动滚动
+  function stopAutoScroll() {
+    clearInterval(autoScrollInterval);
+  }
+
+  // 初始化自动滚动
+  startAutoScroll();
+
+  img.addEventListener('click', function(event) {
+    const offsetX = event.offsetX;
+    const offsetY = event.offsetY;
+
+    if (zoomLevel === 0) {
+      // 第一次放大
+      img.classList.add('zoomed');
+      img.style.transformOrigin = `${offsetX}px ${offsetY}px`;
+      stopAutoScroll(); // 停止自动滚动
+      zoomLevel = 1;
+    } else {
+      // 恢复原状
+      img.classList.remove('zoomed');
+      zoomLevel = 0;
+      startAutoScroll(); // 恢复自动滚动
+    }
+  });
+
+  // 确保页面加载完成后自动滚动
+  window.onload = () => {
+    startAutoScroll();
+  };
+
+</script>
+
+</body>
+</html>
+
+
